@@ -1,5 +1,6 @@
 /*
-   L=Left, R=Right, F=Forward, B=Back
+   2=Left, 3=Right, 1=Forward, 4=Back
+   5=move forward left, 6=move forward right
 */
 
 int pinLB = 12; // define pin 12
@@ -18,12 +19,48 @@ void setup()
   pinMode(pinRF, OUTPUT); // pin 11 (PWM)
 }
 
-void advance() // move forward
+void set(bool LB, bool RB, int LF, int RF)
 {
-  digitalWrite(pinLB, LOW); // right wheel moves forward
-  digitalWrite(pinRB, LOW); // left wheel moves forward
-  analogWrite(pinLF, 255);
-  analogWrite(pinRF, 255);
+  digitalWrite(pinLB, LB); 
+  digitalWrite(pinRB, RB); 
+  analogWrite(pinLF, LF);
+  analogWrite(pinRF, RF);
+}
+
+void loop()
+{
+  val = Serial.read();
+  if (val == '1') // move forward
+  {  
+    set(LOW, LOW, 255, 255);
+  }
+  if (val == '5') // move forward left
+  {
+    set(HIGH, LOW, 0, 255);
+  }
+  if (val == '6') // move forward right
+  {
+    set(LOW, HIGH, 255, 0);
+  }
+  if (val == '4') // move backward
+  {
+    set(HIGH, HIGH, 255, 255);
+  }
+  if (val == '2') // turn left
+  {
+    set(HIGH, LOW, 255, 255);
+    delay(600);
+    stopp();
+  }
+  if (val == '3') // turn right
+  {
+    set(LOW, HIGH, 255, 255);
+    delay(600);
+    stopp();
+  }
+  if ( val == '0') {
+    stopp();
+  }
 }
 
 void stopp() // stop
@@ -32,49 +69,4 @@ void stopp() // stop
   digitalWrite(pinRB, HIGH);
   analogWrite(pinLF, 0);
   analogWrite(pinRF, 0);
-}
-void right() // turn right (single wheel)
-{
-  digitalWrite(pinLB, LOW); // left wheel moves forward
-  digitalWrite(pinRB, HIGH); // right wheel moves backward
-  analogWrite(pinLF, 255);
-  analogWrite(pinRF, 255);
-}
-void left() // turn left (single wheel)
-{
-  digitalWrite(pinLB, HIGH); // left wheel moves forward
-  digitalWrite(pinRB, LOW); // right wheel moves backward
-  analogWrite(pinLF, 255);
-  analogWrite(pinRF, 255);
-}
-void back() // move backward
-{
-  digitalWrite(pinLB, HIGH); // motor moves to left rear
-  digitalWrite(pinRB, HIGH); // motor moves to right rear
-  analogWrite(pinLF, 255);
-  analogWrite(pinRF, 255);
-}
-
-void loop()
-{
-  val = Serial.read();
-  if (val == 'f') {
-    advance();
-  }
-  if (val == 'b') {
-    back();
-  }
-  if (val == 'l') {
-    left();
-    delay(600);
-    stopp();
-  }
-  if (val == 'r') {
-    right();
-    delay(600);
-    stopp();
-  }
-  if ( val == 's') {
-    stopp();
-  }
 }
