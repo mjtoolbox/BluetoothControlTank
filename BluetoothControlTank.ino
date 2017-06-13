@@ -1,14 +1,11 @@
 /*
+   0=spot,
    2=Left, 3=Right, 1=Forward, 4=Back
    5=move forward left, 6=move forward right
+   7=move backward left, 8=move backward right
 */
-
-int pinLB = 12; // define pin 12
-int pinLF = 3; // define pin 3
-int pinRB = 13; // define pin 13
-int pinRF = 11; // define pin 11
-int val;
-
+enum { pinLB = 12, pinLF = 3, pinRB = 13, pinRF = 11 };
+int direct = 0;
 
 void setup()
 {
@@ -21,52 +18,80 @@ void setup()
 
 void set(bool LB, bool RB, int LF, int RF)
 {
-  digitalWrite(pinLB, LB); 
-  digitalWrite(pinRB, RB); 
+  digitalWrite(pinLB, LB);
+  digitalWrite(pinRB, RB);
   analogWrite(pinLF, LF);
   analogWrite(pinRF, RF);
 }
 
 void loop()
 {
-  val = Serial.read();
+  int val = Serial.read();
   if (val == '1') // move forward
-  {  
-    set(LOW, LOW, 255, 255);
-  }
-  if (val == '5') // move forward left
   {
-    set(HIGH, LOW, 0, 255);
+    forward();
   }
-  if (val == '6') // move forward right
+  else if (val == '5') // move forward left
   {
     set(LOW, HIGH, 255, 0);
+    delay(300);
+    if (direct == 1)
+      forward();
+    else
+      stopp();
   }
-  if (val == '4') // move backward
+  else if (val == '6') // move forward right
   {
-    set(HIGH, HIGH, 255, 255);
+    set(HIGH, LOW, 0, 255);
+    delay(300);
+    if (direct == 1)
+      forward();
+    else
+      stopp();
   }
-  if (val == '2') // turn left
+  else if (val == '4') // move backward
+  {
+    backward();
+  }
+  else if (val == '7') // move backward left
+  {
+    set(HIGH, LOW, 255, 0);
+  }
+  else if (val == '8') // move backward right
+  {
+    set(LOW, HIGH, 0, 255);
+  }
+  else if (val == '2') // turn left
   {
     set(HIGH, LOW, 255, 255);
-    delay(600);
+    delay(300);
     stopp();
   }
-  if (val == '3') // turn right
+  else if (val == '3') // turn right
   {
     set(LOW, HIGH, 255, 255);
-    delay(600);
+    delay(300);
     stopp();
   }
-  if ( val == '0') {
+  else if ( val == '0') 
+  {
     stopp();
   }
 }
 
 void stopp() // stop
 {
-  digitalWrite(pinLB, HIGH);
-  digitalWrite(pinRB, HIGH);
-  analogWrite(pinLF, 0);
-  analogWrite(pinRF, 0);
+  direct = 0;
+  set(HIGH, HIGH, 0, 0);
 }
+void forward()
+{
+  direct = 1;
+  set(LOW, LOW, 255, 255);
+}
+void backward()
+{
+  direct = -1;
+  set(HIGH, HIGH, 255, 255);
+}
+
