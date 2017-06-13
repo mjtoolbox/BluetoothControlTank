@@ -16,67 +16,33 @@ void setup()
   pinMode(pinRF, OUTPUT); // pin 11 (PWM)
 }
 
+void loop()
+{
+  if (Serial.available())
+  {
+    char val = Serial.read();
+
+    switch (val)
+    {
+      case '0': stopp(); break;
+      case '1': forward(); break;
+      case '4': backward(); break;
+      case '3': turn_right(); break;
+      case '2': turn_left(); break;
+      case '5': forward_left(); break;
+      case '6': forward_right(); break;
+      case '7': backward_left(); break;
+      case '8': backward_right(); break;
+    }
+  }
+}
+
 void set(bool LB, bool RB, int LF, int RF)
 {
   digitalWrite(pinLB, LB);
   digitalWrite(pinRB, RB);
   analogWrite(pinLF, LF);
   analogWrite(pinRF, RF);
-}
-
-void loop()
-{
-  int val = Serial.read();
-  if (val == '1') // move forward
-  {
-    forward();
-  }
-  else if (val == '5') // move forward left
-  {
-    set(LOW, HIGH, 255, 0);
-    delay(300);
-    if (direct == 1)
-      forward();
-    else
-      stopp();
-  }
-  else if (val == '6') // move forward right
-  {
-    set(HIGH, LOW, 0, 255);
-    delay(300);
-    if (direct == 1)
-      forward();
-    else
-      stopp();
-  }
-  else if (val == '4') // move backward
-  {
-    backward();
-  }
-  else if (val == '7') // move backward left
-  {
-    set(HIGH, LOW, 255, 0);
-  }
-  else if (val == '8') // move backward right
-  {
-    set(LOW, HIGH, 0, 255);
-  }
-  else if (val == '2') // turn left
-  {
-    set(HIGH, LOW, 255, 255);
-    delay(300);
-    stopp();
-  }
-  else if (val == '3') // turn right
-  {
-    set(LOW, HIGH, 255, 255);
-    delay(300);
-    stopp();
-  }
-  else if ( val == '0') 
-  {
-    stopp();
-  }
 }
 
 void stopp() // stop
@@ -93,5 +59,48 @@ void backward()
 {
   direct = -1;
   set(HIGH, HIGH, 255, 255);
+}
+void turn_right()
+{
+  set(LOW, HIGH, 255, 255);
+  delay(300);
+  stopp();
+}
+
+void turn_left()
+{
+  set(HIGH, LOW, 255, 255);
+  delay(300);
+  stopp();
+}
+void backward_left()
+{
+  set(HIGH, LOW, 255, 0);
+  delay(300);
+  stopp();
+}
+void backward_right()
+{
+  set(LOW, HIGH, 0, 255);
+  delay(300);
+  stopp();
+}
+void forward_left()
+{
+  set(LOW, HIGH, 255, 0);
+  delay(300);
+  if (direct == 1)
+    forward();
+  else
+    stopp();
+}
+void forward_right()
+{
+  set(HIGH, LOW, 0, 255);
+  delay(300);
+  if (direct == 1)
+    forward();
+  else
+    stopp();
 }
 
