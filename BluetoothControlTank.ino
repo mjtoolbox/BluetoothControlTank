@@ -115,9 +115,9 @@ void forward_right()
 }
 void handshake()
 {
-  myservo.write(0);
+  myservo.write(45);
   delay(delay_time);
-  myservo.write(180);
+  myservo.write(135);
   delay(delay_time);
   myservo.write(90);
 }
