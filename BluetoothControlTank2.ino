@@ -4,10 +4,13 @@
    5=move forward left, 6=move forward right
    7=move backward left, 8=move backward right
 */
-#include <Servo.h> 
+#include <Servo.h>
 enum { pinLB = 12, pinLF = 3, pinRB = 13, pinRF = 11 };
-int delay_time = 300;
-int direct = 0;
+int inputPin = 4;    // define pin for sensor echo
+int outputPin = 5;   // define pin for sensor trig
+int delay_time_ = 300;
+int direct_ = 0; // forward=1 backward=-1 stop=0
+int distance_ = 0;      // forward speed
 
 Servo myservo;
 
@@ -18,6 +21,8 @@ void setup()
   pinMode(pinLF, OUTPUT); // pin 3 (PWM)
   pinMode(pinRB, OUTPUT); // pin 13
   pinMode(pinRF, OUTPUT); // pin 11 (PWM)
+  pinMode(inputPin, INPUT);    // define input pin for sensor
+  pinMode(outputPin, OUTPUT);  // define output pin for sensor
   myservo.attach(9);    // Define servo motor output pin to D9 (PWM)
   handshake();
 }
@@ -41,6 +46,11 @@ void loop()
       case '8': backward_right(); break;
     }
   }
+  ask_pin_F();            // read the distance ahead
+  if (distance_ < 15 && direct_ == 1)        // if distance ahead is <10cm and moving forvard
+  {
+    stopp();               // stop
+  }
 }
 
 void set(bool LB, bool RB, int LF, int RF)
@@ -53,50 +63,50 @@ void set(bool LB, bool RB, int LF, int RF)
 
 void stopp() // stop
 {
-  direct = 0;
+  direct_ = 0;
   set(HIGH, HIGH, 0, 0);
 }
 void forward()
 {
-  direct = 1;
+  direct_ = 1;
   set(LOW, LOW, 255, 255);
 }
 void backward()
 {
-  direct = -1;
+  direct_ = -1;
   set(HIGH, HIGH, 255, 255);
 }
 void turn_right()
 {
   set(LOW, HIGH, 255, 255);
-  delay(delay_time);
+  delay(delay_time_);
   stopp();
 }
 
 void turn_left()
 {
   set(HIGH, LOW, 255, 255);
-  delay(delay_time);
+  delay(delay_time_);
   stopp();
 }
 void backward_left()
 {
   set(HIGH, LOW, 255, 0);
-  delay(delay_time);
+  delay(delay_time_);
   stopp();
 }
 void backward_right()
 {
   set(LOW, HIGH, 0, 255);
-  delay(delay_time);
+  delay(delay_time_);
   stopp();
 }
 void forward_left()
 {
   set(LOW, HIGH, 255, 0);
   myservo.write(45);
-  delay(delay_time);
-  if (direct == 1)
+  delay(delay_time_);
+  if (direct_ == 1)
     forward();
   else
     stopp();
@@ -105,9 +115,9 @@ void forward_left()
 void forward_right()
 {
   set(HIGH, LOW, 0, 255);
-  myservo.write(180-45);
-  delay(delay_time);
-  if (direct == 1)
+  myservo.write(180 - 45);
+  delay(delay_time_);
+  if (direct_ == 1)
     forward();
   else
     stopp();
@@ -116,9 +126,20 @@ void forward_right()
 void handshake()
 {
   myservo.write(45);
-  delay(delay_time);
-  myservo.write(135);
-  delay(delay_time);
+  delay(delay_time_);
+  myservo.write(180 - 45);
+  delay(delay_time_);
   myservo.write(90);
+}
+void ask_pin_F()   // measure the distance ahead
+{
+  myservo.write(90);
+  digitalWrite(outputPin, LOW);   // ultrasonic sensor transmit low level signal 2μs
+  delayMicroseconds(2);
+  digitalWrite(outputPin, HIGH);  // ultrasonic sensor transmit high level signal10μs, at least 10μs
+  delayMicroseconds(10);
+  digitalWrite(outputPin, LOW);    // keep transmitting low level signal
+  float f_distance = pulseIn(inputPin, HIGH);  // read the time in between
+  distance_ = f_distance / 5.8 / 10;  // convert time into distance (unit: cm)
 }
 
